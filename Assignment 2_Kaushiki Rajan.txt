@@ -1,0 +1,219 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Your Notes App</title>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Your Notes App</h1>
+        </header>
+        <div class="input-section">
+            <input type="text" id="title" placeholder="Title (Mandatory)">
+            <textarea id="note" placeholder="Note"></textarea>
+            <button id="addNote">Add Note</button>
+        </div>
+        <h2 id="noteAvailability">No notes available</h2>
+        <div id="notesList"></div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
+
+
+css code(named style.css):
+
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f0f0f0;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+h1 {
+    color: #333;
+}
+
+.input-section {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+}
+
+input[type="text"], textarea {
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+button {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+#notesList {
+    display: flex;
+    flex-direction: column;
+}
+
+.note-item {
+    margin-bottom: 20px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+button.edit {
+    background-color: #28a745;
+}
+
+button.edit:hover {
+    background-color: #1a991a;
+}
+
+button.delete {
+    background-color: #dc3545;
+}
+
+button.delete:hover {
+    background-color: #c82333;
+}
+
+h2 {
+    font-size: 18px;
+    color: #333;
+    font-weight: bold;
+}
+
+
+javascript code(named script.js):
+
+
+document.addEventListener("DOMContentLoaded", function () {
+    const titleInput = document.getElementById("title");
+    const noteInput = document.getElementById("note");
+    const addNoteButton = document.getElementById("addNote");
+    const notesList = document.getElementById("notesList");
+    const noteAvailability = document.getElementById("noteAvailability");
+
+    addNoteButton.addEventListener("click", addNote);
+
+    function addNote() {
+        const title = titleInput.value.trim();
+        const note = noteInput.value.trim();
+
+        if (title === "") {
+            alert("Title is mandatory");
+            return;
+        }
+
+        const noteObject = {
+            title: title,
+            note: note,
+            date: new Date().toLocaleString(),
+        };
+
+        saveNoteToLocalStorage(noteObject);
+        displayNotes();
+        clearInputs();
+    }
+
+    function saveNoteToLocalStorage(noteObject) {
+        let notes = JSON.parse(localStorage.getItem("notes")) || [];
+        notes.push(noteObject);
+        localStorage.setItem("notes", JSON.stringify(notes));
+    }
+
+    function displayNotes() {
+        const notes = JSON.parse(localStorage.getItem("notes")) || [];
+
+        if (notes.length === 0) {
+            noteAvailability.textContent = "No notes available";
+        } else {
+            noteAvailability.textContent = "Your Notes:";
+        }
+
+        notesList.innerHTML = "";
+        notes.forEach((note, index) => {
+            const noteItem = document.createElement("div");
+            noteItem.classList.add("note-item");
+
+            const noteTitle = document.createElement("h3");
+            noteTitle.textContent = note.title;
+
+            const noteText = document.createElement("p");
+            noteText.textContent = note.note;
+
+            const noteDate = document.createElement("small");
+            noteDate.textContent = "Created: " + note.date;
+
+            const editButton = document.createElement("button");
+            editButton.textContent = "Edit";
+            editButton.addEventListener("click", () => editNote(index));
+
+            const deleteButton = document.createElement("button");
+            deleteButton.textContent = "Delete";
+            deleteButton.addEventListener("click", () => deleteNote(index));
+
+            noteItem.appendChild(noteTitle);
+            noteItem.appendChild(noteText);
+            noteItem.appendChild(noteDate);
+            noteItem.appendChild(editButton);
+            noteItem.appendChild(deleteButton);
+
+            notesList.appendChild(noteItem);
+        });
+    }
+
+    function clearInputs() {
+        titleInput.value = "";
+        noteInput.value = "";
+    }
+
+    function deleteNote(index) {
+        const notes = JSON.parse(localStorage.getItem("notes")) || [];
+        notes.splice(index, 1);
+        localStorage.setItem("notes", JSON.stringify(notes));
+        displayNotes();
+    }
+
+    function editNote(index) {
+        const notes = JSON.parse(localStorage.getItem("notes")) || [];
+        const editedNote = notes[index];
+        titleInput.value = editedNote.title;
+        noteInput.value = editedNote.note;
+        notes.splice(index, 1);
+        localStorage.setItem("notes", JSON.stringify(notes));
+        displayNotes();
+    }
+
+    // Initial display of notes when the page loads
+    displayNotes();
+});
